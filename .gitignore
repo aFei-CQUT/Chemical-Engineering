@@ -1,0 +1,16 @@
+# 默认忽略的文件
+/shelf/
+/workspace.xml
+
+# 基于编辑器的 HTTP 客户端请求
+/httpRequests/
+
+# 数据源本地存储忽略的文件
+/dataSources/
+/dataSources.local.xml
+
+# 忽略 Python 字节码文件
+*.pyc
+
+# 忽略 Python 缓存目录
+__pycache__/
