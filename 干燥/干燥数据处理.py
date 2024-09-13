@@ -212,9 +212,10 @@ class DryingDataProcessor:
         self.serialize_results()
 
 # 使用示例
-file_path = './干燥原始数据记录表(非).xlsx'
-drying_data_processor = DryingDataProcessor(file_path)
-drying_data_processor.run_drying_data_processor()
+if __name__ == '__main__':
+    file_path = './干燥原始数据记录表(非).xlsx'
+    drying_data_processor = DryingDataProcessor(file_path)
+    drying_data_processor.run_drying_data_processor()
 
 # 获取结果，依旧可以从对象的变量区寻找
 # ans1 = drying_data_processor.ans1

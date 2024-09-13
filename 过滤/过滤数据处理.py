@@ -269,7 +269,8 @@ class FilterDataProcessor:
                     zipf.write(file_dir, arc_name)
 
         print(f'压缩完成，文件保存为: {dir_to_save}')
-
+        
+# 使用示例
 if __name__ == '__main__':
     file_path = r'./过滤原始数据记录表(非).xlsx'
     filter_data_processor = FilterDataProcessor(file_path)
