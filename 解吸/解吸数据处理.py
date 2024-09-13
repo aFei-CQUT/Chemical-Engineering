@@ -11,32 +11,32 @@ warnings.filterwarnings("ignore")
 
 class PackedTowerAnalyzer:
     def __init__(self, file_dir):
-        self.file_dir = file_dir
-        self.sheet_names = pd.ExcelFile(file_dir).sheet_names
-        self.results = []
+        self.file_dir = file_dir  # 文件路径
+        self.sheet_names = pd.ExcelFile(file_dir).sheet_names  # Excel文件中的工作表名称
+        self.results = []  # 存储分析结果的列表
         
         # 添加新的属性
-        self.V_空 = None
-        self.t_空 = None
-        self.p_空气压力 = None
-        self.Δp_全塔_mmH2O = None
-        self.D = 0.1
-        self.Z = 0.75
-        self.A = None
-        self.V_空_修 = None
-        self.u = None
-        self.ρ_水 = 9.8
-        self.g = 9.8
-        self.Δp_over_Z = None
-        self.corr = None
-        self.popt = None
-        self.fit_label = None
-        self.ans1 = None
-        self.ans2 = None
+        self.V_空 = None  # 空塔气速
+        self.t_空 = None  # 空塔温度
+        self.p_空气压力 = None  # 空气压力
+        self.Δp_全塔_mmH2O = None  # 全塔压降（毫米水柱）
+        self.D = 0.1  # 塔径（米）
+        self.Z = 0.75  # 塔高（米）
+        self.A = None  # 塔截面积
+        self.V_空_修 = None  # 修正后的空塔气速
+        self.u = None  # 空塔气速（米/秒）
+        self.ρ_水 = 9.8  # 水的密度（千克/立方米）
+        self.g = 9.8  # 重力加速度（米/秒^2）
+        self.Δp_over_Z = None  # 单位高度填料层压降
+        self.corr = None  # 相关系数
+        self.popt = None  # 拟合参数
+        self.fit_label = None  # 拟合标签
+        self.ans1 = None  # 干填料分析结果
+        self.ans2 = None  # 湿填料分析结果
 
     @staticmethod
     def linear_fit(x, a, b):
-        return a * x + b
+        return a * x + b  # 线性拟合函数
 
     @staticmethod
     def taylor_fit(x, *coefficients):
@@ -44,25 +44,25 @@ class PackedTowerAnalyzer:
         y_fit = np.zeros_like(x)
         for i in range(n):
             y_fit += coefficients[i] * (x ** i)
-        return y_fit
+        return y_fit  # 泰勒级数拟合函数
 
     def analyze_fluid_dynamics(self, sheet_name, threshold=0.95):
         df = pd.read_excel(self.file_dir, header=None, sheet_name=sheet_name)
         data = df.iloc[2:, 1:].apply(pd.to_numeric, errors='coerce').values
         
-        self.V_空 = data[:, 0]
-        self.t_空 = data[:, 1]
-        self.p_空气压力 = data[:, 2]
-        self.Δp_全塔_mmH2O = data[:, 4]
+        self.V_空 = data[:, 0]  # 空塔气速
+        self.t_空 = data[:, 1]  # 空塔温度
+        self.p_空气压力 = data[:, 2]  # 空气压力
+        self.Δp_全塔_mmH2O = data[:, 4]  # 全塔压降（毫米水柱）
         
-        self.A = np.pi * (self.D / 2)**2
+        self.A = np.pi * (self.D / 2)**2  # 塔截面积
         
-        self.V_空_修 = self.V_空 * np.sqrt((1.013e5 / (self.p_空气压力 * 1e3 + 1.013e5)) * ((self.t_空 + 273.15) / (25 + 273.15)))
-        self.u = self.V_空_修 / self.A / 3600
+        self.V_空_修 = self.V_空 * np.sqrt((1.013e5 / (self.p_空气压力 * 1e3 + 1.013e5)) * ((self.t_空 + 273.15) / (25 + 273.15)))  # 修正后的空塔气速
+        self.u = self.V_空_修 / self.A / 3600  # 空塔气速（米/秒）
         
-        self.Δp_over_Z = self.ρ_水 * self.g * self.Δp_全塔_mmH2O * 1e-3 / self.Z
+        self.Δp_over_Z = self.ρ_水 * self.g * self.Δp_全塔_mmH2O * 1e-3 / self.Z  # 单位高度填料层压降
         
-        self.corr, _ = pearsonr(self.u, self.Δp_over_Z)
+        self.corr, _ = pearsonr(self.u, self.Δp_over_Z)  # 计算相关系数
         
         if abs(self.corr) >= threshold:
             self.popt, _ = curve_fit(self.linear_fit, self.u, self.Δp_over_Z)
@@ -154,52 +154,52 @@ class PackedTowerAnalyzer:
 
 class OxygenDesorptionAnalyzer:
     def __init__(self, file_dir):
-        self.file_dir = file_dir
-        self.sheet_names = pd.ExcelFile(file_dir).sheet_names
+        self.file_dir = file_dir  # 文件路径
+        self.sheet_names = pd.ExcelFile(file_dir).sheet_names  # Excel文件中的工作表名称
         
         # 添加新的属性
-        self.ρ_水 = 1e3
-        self.ρ_空 = 1.29
-        self.g = 9.8
-        self.M_O2 = 32
-        self.M_H2O = 18
-        self.M_空 = 29
-        self.D = 0.1
-        self.Z = 0.75
-        self.A = None
-        self.p_0 = 1.013e5
-        self.V_水 = None
-        self.V_空 = None
-        self.ΔP_U管压差 = None
-        self.c_富氧水 = None
-        self.c_贫氧水 = None
-        self.t_水 = None
-        self.L = None
-        self.V = None
-        self.x_1 = None
-        self.x_2 = None
-        self.G_A = None
-        self.Ω = None
-        self.V_p = None
-        self.p = None
-        self.m = None
-        self.y1 = 21
-        self.y2 = 21
-        self.x_1_star = None
-        self.x_2_star = None
-        self.Δx_m = None
-        self.K_x_times_a = None
-        self.a_fit = None
-        self.b_fit = None
+        self.ρ_水 = 1e3  # 水的密度（千克/立方米）
+        self.ρ_空 = 1.29  # 空气的密度（千克/立方米）
+        self.g = 9.8  # 重力加速度（米/秒^2）
+        self.M_O2 = 32  # 氧气的摩尔质量（克/摩尔）
+        self.M_H2O = 18  # 水的摩尔质量（克/摩尔）
+        self.M_空 = 29  # 空气的摩尔质量（克/摩尔）
+        self.D = 0.1  # 塔径（米）
+        self.Z = 0.75  # 塔高（米）
+        self.A = None  # 塔截面积
+        self.p_0 = 1.013e5  # 标准大气压（帕斯卡）
+        self.V_水 = None  # 水流量
+        self.V_空 = None  # 空气流量
+        self.ΔP_U管压差 = None  # U型管压差
+        self.c_富氧水 = None  # 富氧水浓度
+        self.c_贫氧水 = None  # 贫氧水浓度
+        self.t_水 = None  # 水温
+        self.L = None  # 液相流量
+        self.V = None  # 气相流量
+        self.x_1 = None  # 富氧水的氧气摩尔分数
+        self.x_2 = None  # 贫氧水的氧气摩尔分数
+        self.G_A = None  # 气相流量
+        self.Ω = None  # 塔截面积
+        self.V_p = None  # 塔体积
+        self.p = None  # 压力
+        self.m = None  # 氧气的摩尔质量
+        self.y1 = 21  # 氧气在气相中的摩尔分数（入口）
+        self.y2 = 21  # 氧气在气相中的摩尔分数（出口）
+        self.x_1_star = None  # 富氧水的氧气摩尔分数（平衡）
+        self.x_2_star = None  # 贫氧水的氧气摩尔分数（平衡）
+        self.Δx_m = None  # 平均摩尔分数差
+        self.K_x_times_a = None  # 传质系数乘以比表面积
+        self.a_fit = None  # 拟合参数a
+        self.b_fit = None  # 拟合参数b
 
     @staticmethod
     def E(t):
-        return (-8.5694e-5 * t ** 2 + 0.07714 * t + 2.56) * 1e9
+        return (-8.5694e-5 * t ** 2 + 0.07714 * t + 2.56) * 1e9  # 氧气在水中的溶解度
 
     @staticmethod
     def correlation_func(vars, a, b):
         A, L, V = vars
-        return A * L**a * V**b
+        return A * L**a * V**b  # 关联函数
 
     def analyze_oxygen_desorption(self, sheet_name):
         initial_guess = [1.0, 1.0]
@@ -207,33 +207,33 @@ class OxygenDesorptionAnalyzer:
         df = pd.read_excel(self.file_dir, header=None, sheet_name=sheet_name)
         data = df.iloc[2:, 1:].apply(pd.to_numeric, errors='coerce').values
 
-        self.A = np.full((3,), np.pi * (self.D / 2) ** 2)
-        self.V_水 = data[:, 1]
-        self.V_空 = data[:, 2]
-        self.ΔP_U管压差 = self.ρ_水 * self.g * data[:, 3] * 1e-3
-        self.c_富氧水 = data[:, 5]
-        self.c_贫氧水 = data[:, 6]
-        self.t_水 = data[:, 7]
+        self.A = np.full((3,), np.pi * (self.D / 2) ** 2)  # 塔截面积
+        self.V_水 = data[:, 1]  # 水流量
+        self.V_空 = data[:, 2]  # 空气流量
+        self.ΔP_U管压差 = self.ρ_水 * self.g * data[:, 3] * 1e-3  # U型管压差
+        self.c_富氧水 = data[:, 5]  # 富氧水浓度
+        self.c_贫氧水 = data[:, 6]  # 贫氧水浓度
+        self.t_水 = data[:, 7]  # 水温
 
-        self.L = self.ρ_水/self.M_H2O * self.V_水
-        self.V = self.ρ_空/self.M_空 * self.V_空
-        self.x_1 = (self.c_富氧水 * 1 / self.M_O2) / ((self.c_富氧水 * 1 / self.M_O2) * 1e-3 + 1e6 / 18)
-        self.x_2 = (self.c_贫氧水 * 1 / self.M_O2) / ((self.c_贫氧水 * 1 / self.M_O2) * 1e-3 + 1e6 / 18)
+        self.L = self.ρ_水/self.M_H2O * self.V_水  # 液相流量
+        self.V = self.ρ_空/self.M_空 * self.V_空  # 气相流量
+        self.x_1 = (self.c_富氧水 * 1 / self.M_O2) / ((self.c_富氧水 * 1 / self.M_O2) * 1e-3 + 1e6 / 18)  # 富氧水的氧气摩尔分数
+        self.x_2 = (self.c_贫氧水 * 1 / self.M_O2) / ((self.c_贫氧水 * 1 / self.M_O2) * 1e-3 + 1e6 / 18)  # 贫氧水的氧气摩尔分数
 
-        self.G_A = self.L / (self.x_1 - self.x_2)
-        self.Ω = self.A
-        self.V_p = self.Z * self.Ω
-        self.p = self.p_0 + 1 / 2 * self.ΔP_U管压差
-        self.m = self.E(self.t_水) / self.p
+        self.G_A = self.L / (self.x_1 - self.x_2)  # 气相流量
+        self.Ω = self.A  # 塔截面积
+        self.V_p = self.Z * self.Ω  # 塔体积
+        self.p = self.p_0 + 1 / 2 * self.ΔP_U管压差  # 压力
+        self.m = self.E(self.t_水) / self.p  # 氧气的摩尔质量
 
-        self.x_1_star = self.y1 / self.m
-        self.x_2_star = self.y2 / self.m
-        self.Δx_m = ((self.x_1 - self.x_1_star) - (self.x_2 - self.x_2_star))/np.log((self.x_1 - self.x_1_star)/(self.x_2 - self.x_2_star))
-        self.K_x_times_a = self.G_A / (self.V_p * self.Δx_m)
+        self.x_1_star = self.y1 / self.m  # 富氧水的氧气摩尔分数（平衡）
+        self.x_2_star = self.y2 / self.m  # 贫氧水的氧气摩尔分数（平衡）
+        self.Δx_m = ((self.x_1 - self.x_1_star) - (self.x_2 - self.x_2_star))/np.log((self.x_1 - self.x_1_star)/(self.x_2 - self.x_2_star))  # 平均摩尔分数差
+        self.K_x_times_a = self.G_A / (self.V_p * self.Δx_m)  # 传质系数乘以比表面积
 
         params, _ = curve_fit(self.correlation_func, (self.A, self.L, self.V), self.K_x_times_a, p0=initial_guess)
 
-        self.a_fit, self.b_fit = params[0], params[1]
+        self.a_fit, self.b_fit = params[0], params[1]  # 拟合参数a和b
 
         print(f"工作表 {sheet_name} 中最优化拟合得到的参数：a={self.a_fit}, b={self.b_fit}")
 
@@ -250,6 +250,7 @@ class OxygenDesorptionAnalyzer:
         self._set_spine_width(plt.gca())
         plt.savefig(f'./拟合图结果/{sheet_name}.png', dpi=300)
         plt.show()
+
 
     @staticmethod
     def _set_spine_width(ax):

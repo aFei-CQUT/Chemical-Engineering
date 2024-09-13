@@ -16,9 +16,9 @@ class HeatTransferDataProcesser:
         参数:
         excel_file (str): Excel文件路径
         """
-        self.excel_file = excel_file
-        self.datasets = self.load_data()
-        self.results = []
+        self.excel_file = excel_file  # Excel文件路径
+        self.datasets = self.load_data()  # 加载数据集
+        self.results = []  # 存储处理结果
 
     def load_data(self):
         """
@@ -27,16 +27,16 @@ class HeatTransferDataProcesser:
         返回:
         datasets (list): 包含每个工作表数据的列表
         """
-        excel_file = pd.ExcelFile(self.excel_file)
-        sheet_names = excel_file.sheet_names[:2]
+        excel_file = pd.ExcelFile(self.excel_file)  # 读取Excel文件
+        sheet_names = excel_file.sheet_names[:2]  # 获取前两个工作表的名称
         datasets = []
         for sheet_name in sheet_names:
-            sheet = pd.read_excel(self.excel_file, sheet_name=sheet_name, header=None)
-            data = np.array(sheet.iloc[1:7, 1:4].values, dtype=float)
+            sheet = pd.read_excel(self.excel_file, sheet_name=sheet_name, header=None)  # 读取工作表数据
+            data = np.array(sheet.iloc[1:7, 1:4].values, dtype=float)  # 提取并转换数据
             datasets.append({
-                'Δp_kb': data[:, 0],
-                't_in': data[:, 1],
-                't_out': data[:, 2]
+                'Δp_kb': data[:, 0],  # 孔板压差数据
+                't_in': data[:, 1],   # 入口温度数据
+                't_out': data[:, 2]   # 出口温度数据
             })
         return datasets
 
@@ -54,37 +54,37 @@ class HeatTransferDataProcesser:
         ans_calculated_data (pd.DataFrame): 计算结果表格
         data_for_fit (numpy.ndarray): 用于拟合的数据
         """
-        # 计算过程（与原代码相同）
-        t_w = 98.4
-        d_o = 0.022
-        d_i = d_o - 2 * 0.001
-        l = 1.2
-        n = 1
-        C_0 = 0.65
-        S_i = np.pi * l * n * d_i
-        S_o = np.pi * l * n * d_o
-        A_i = (np.pi * d_i ** 2) / 4
-        A_0 = 2.27 * 10 ** -4
-        t_avg = 0.5 * (t_in + t_out)
-        Cp = 1005
-        ρ = (t_avg ** 2) / 10 ** 5 - (4.5 * t_avg) / 10 ** 3 + 1.2916
-        λ = -(2 * t_avg ** 2) / 10 ** 8 + (8 * t_avg) / 10 ** 5 + 0.0244
-        μ = (-(2 * t_avg ** 2) / 10 ** 6 + (5 * t_avg) / 10 ** 3 + 1.7169) / 10 ** 5
-        Pr = (Cp * μ) / λ
-        PrZeroFour = Pr ** 0.4
-        V_t = 3600 * A_0 * C_0 * np.sqrt((2 * 10 ** 3 * Δp_kb) / ρ)
-        V_xiu = ((t_avg + 273.15) * V_t) / (t_in + 273.15)
-        u_m = V_xiu / (3600 * A_i)
-        W_c = (ρ * V_xiu) / 3600
-        Q = Cp * W_c * (t_out - t_in)
-        α_i = Q / (t_avg * S_i)
-        Nu_i = (d_i * α_i) / λ
-        Re_i = (ρ * d_i * u_m) / μ
-        NuOverPrZeroFour = Nu_i / Pr ** 0.4
-        Δt1 = t_w - t_in
-        Δt2 = t_w - t_out
-        Δt_m = (Δt2 - Δt1) / (np.log(Δt2) - np.log(Δt1))
-        K_o = Q / (Δt_m * S_o)
+        # 计算过程
+        t_w = 98.4  # 壁面温度
+        d_o = 0.022  # 外径
+        d_i = d_o - 2 * 0.001  # 内径
+        l = 1.2  # 长度
+        n = 1  # 管数
+        C_0 = 0.65  # 流量系数
+        S_i = np.pi * l * n * d_i  # 内表面积
+        S_o = np.pi * l * n * d_o  # 外表面积
+        A_i = (np.pi * d_i ** 2) / 4  # 内截面积
+        A_0 = 2.27 * 10 ** -4  # 孔板面积
+        t_avg = 0.5 * (t_in + t_out)  # 平均温度
+        Cp = 1005  # 比热容
+        ρ = (t_avg ** 2) / 10 ** 5 - (4.5 * t_avg) / 10 ** 3 + 1.2916  # 密度
+        λ = -(2 * t_avg ** 2) / 10 ** 8 + (8 * t_avg) / 10 ** 5 + 0.0244  # 导热系数
+        μ = (-(2 * t_avg ** 2) / 10 ** 6 + (5 * t_avg) / 10 ** 3 + 1.7169) / 10 ** 5  # 动力粘度
+        Pr = (Cp * μ) / λ  # 普朗特数
+        PrZeroFour = Pr ** 0.4  # 普朗特数的0.4次方
+        V_t = 3600 * A_0 * C_0 * np.sqrt((2 * 10 ** 3 * Δp_kb) / ρ)  # 体积流量
+        V_xiu = ((t_avg + 273.15) * V_t) / (t_in + 273.15)  # 修正体积流量
+        u_m = V_xiu / (3600 * A_i)  # 平均流速
+        W_c = (ρ * V_xiu) / 3600  # 质量流量
+        Q = Cp * W_c * (t_out - t_in)  # 热流量
+        α_i = Q / (t_avg * S_i)  # 内表面换热系数
+        Nu_i = (d_i * α_i) / λ  # 努塞尔数
+        Re_i = (ρ * d_i * u_m) / μ  # 雷诺数
+        NuOverPrZeroFour = Nu_i / Pr ** 0.4  # 努塞尔数与普朗特数的0.4次方之比
+        Δt1 = t_w - t_in  # 温差1
+        Δt2 = t_w - t_out  # 温差2
+        Δt_m = (Δt2 - Δt1) / (np.log(Δt2) - np.log(Δt1))  # 平均温差
+        K_o = Q / (Δt_m * S_o)  # 总传热系数
 
         # 创建原始数据表格
         ans_original_data = pd.DataFrame({
@@ -197,12 +197,12 @@ class HeatTransferDataProcesser:
         ans_params, _ = curve_fit(self.fit_func, np.log10(data_for_fit[:, 0]), np.log10(data_for_fit[:, 1]))
 
         plt.figure(figsize=(8, 6), dpi=125)
-        plt.scatter(data_for_fit[:, 0], data_for_fit[:, 1], color='r', label=r'$\mathrm{Data}$')
-        plt.plot(data_for_fit[:, 0], 10 ** self.fit_func(np.log10(data_for_fit[:, 0]), *ans_params), color='k', label=r'$\mathrm{Fit}$')
+        plt.scatter(data_for_fit[:, 0], data_for_fit[:, 1], color='r', label=r'$\mathrm{Data}')
+        plt.plot(data_for_fit[:, 0], 10 ** self.fit_func(np.log10(data_for_fit[:, 0]), *ans_params), color='k', label=r'$\mathrm{Fit}')
         plt.xscale('log')
         plt.yscale('log')
-        plt.xlabel(r'$\mathrm{Re}$', fontsize=14, fontweight='bold')
-        plt.ylabel(r'$\mathrm{Nu/Pr^{0.4}}$', fontsize=14, fontweight='bold')
+        plt.xlabel(r'$\mathrm{Re}, fontsize=14, fontweight='bold')
+        plt.ylabel(r'$\mathrm{Nu/Pr^{0.4}}, fontsize=14, fontweight='bold')
         plt.title(title, fontsize=10, fontweight='bold')
         plt.legend()
 
@@ -255,8 +255,8 @@ class HeatTransferDataProcesser:
         else:
             plt.xscale('log')
             plt.yscale('log')
-            plt.xlabel(r'$\mathrm{Re}$', fontsize=14, fontweight='bold')
-            plt.ylabel(r'$\mathrm{Nu/Pr^{0.4}}$', fontsize=14, fontweight='bold')
+            plt.xlabel(r'$\mathrm{Re}, fontsize=14, fontweight='bold')
+            plt.ylabel(r'$\mathrm{Nu/Pr^{0.4}}, fontsize=14, fontweight='bold')
             plt.title('无强化套管 vs.有强化套管', fontsize=10, fontweight='bold')
             plt.legend()
     

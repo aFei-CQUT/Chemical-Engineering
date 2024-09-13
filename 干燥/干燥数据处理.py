@@ -14,9 +14,9 @@ class DryingDataProcessor:
         参数:
         file_path (str): Excel 文件的路径。
         """
-        self.file_path = file_path
-        self.results = {}
-        self.setup_plot()
+        self.file_path = file_path  # Excel 文件路径
+        self.results = {}  # 存储处理结果
+        self.setup_plot()  # 设置绘图参数
 
     def setup_plot(self):
         """
@@ -31,44 +31,47 @@ class DryingDataProcessor:
         加载 Excel 文件中的数据，并将其分配给相应的变量。
         """
         excel_file = pd.ExcelFile(self.file_path)
-        self.sheet_names = excel_file.sheet_names
+        self.sheet_names = excel_file.sheet_names  # 获取工作表名称列表
 
+        # 读取第一个工作表的数据
         df1 = pd.read_excel(self.file_path, header=None, sheet_name=self.sheet_names[0])
-        data1 = df1.iloc[:, 1].values
+        data1 = df1.iloc[:, 1].values  # 提取数据部分
 
-        self.m_1 = data1[0] * 1e-3
-        self.m_2 = data1[1] * 1e-3
-        self.W2 = data1[2] * 1e-3
-        self.G_prime = data1[3] * 1e-3
-        self.ΔP = data1[4]
+        # 提取各列数据
+        self.m_1 = data1[0] * 1e-3  # 初始质量 (kg)
+        self.m_2 = data1[1] * 1e-3  # 最终质量 (kg)
+        self.W2 = data1[2] * 1e-3  # 水分含量 (kg)
+        self.G_prime = data1[3] * 1e-3  # 干燥速率 (kg/h)
+        self.ΔP = data1[4]  # 压差 (Pa)
 
+        # 读取第二个工作表的数据
         df2 = pd.read_excel(self.file_path, header=None, sheet_name=self.sheet_names[1])
-        data2 = df2.iloc[1:, 1:].values
+        data2 = df2.iloc[1:, 1:].values  # 提取数据部分
 
-        self.τ = data2[:, 0] / 60
-        self.W1 = data2[:, 1] * 1e-3
-        self.t = data2[:, 2]
-        self.tw = data2[:, 3]
+        self.τ = data2[:, 0] / 60  # 时间 (h)
+        self.W1 = data2[:, 1] * 1e-3  # 水分含量 (kg)
+        self.t = data2[:, 2]  # 温度 (℃)
+        self.tw = data2[:, 3]  # 湿球温度 (℃)
 
-        self.r_tw = 2490
-        self.S = 2.64 * 1e-2
+        self.r_tw = 2490  # 水的汽化潜热 (kJ/kg)
+        self.S = 2.64 * 1e-2  # 干燥面积 (m^2)
 
     def preprocess_data(self):
         """
         进行数据预处理和计算。
         """
-        self.τ_bar = (self.τ[:-1] + self.τ[1:]) / 2
-        self.G = (self.W1 - self.W2)
-        self.X = (self.G - self.G_prime) / self.G_prime
+        self.τ_bar = (self.τ[:-1] + self.τ[1:]) / 2  # 平均时间 (h)
+        self.G = (self.W1 - self.W2)  # 干燥速率 (kg)
+        self.X = (self.G - self.G_prime) / self.G_prime  # 干基水分含量
 
-        self.ans1 = np.array([self.G * 1000, self.X]).T
+        self.ans1 = np.array([self.G * 1000, self.X]).T  # 干燥速率和干基水分含量
 
-        self.X_bar = (self.X[:-1] + self.X[1:]) / 2
-        self.U = -(self.G_prime / self.S) * (np.diff(self.X) / np.diff(self.τ))
+        self.X_bar = (self.X[:-1] + self.X[1:]) / 2  # 平均干基水分含量
+        self.U = -(self.G_prime / self.S) * (np.diff(self.X) / np.diff(self.τ))  # 干燥速率 (kg/m^2/h)
 
-        self.U_c = np.mean(self.U[15:])
+        self.U_c = np.mean(self.U[15:])  # 平均干燥速率
 
-        self.ans2 = np.array([self.X_bar, self.U]).T
+        self.ans2 = np.array([self.X_bar, self.U]).T  # 平均干基水分含量和干燥速率
 
         self.results.update({
             'ans1': self.ans1.tolist(),
@@ -135,14 +138,14 @@ class DryingDataProcessor:
         """
         进行进一步的计算。
         """
-        C_0 = 0.65
-        A_0 = (np.pi * 0.040 ** 2) / 4
-        ρ_空气 = 1.29
-        t0 = 25
+        C_0 = 0.65  # 常数
+        A_0 = (np.pi * 0.040 ** 2) / 4  # 面积 (m^2)
+        ρ_空气 = 1.29  # 空气密度 (kg/m^3)
+        t0 = 25  # 初始温度 (℃)
 
-        self.α = (self.U_c * self.r_tw) / (self.t - self.tw)
-        self.V_t0 = C_0 * A_0 * np.sqrt(2 * self.ΔP / ρ_空气)
-        self.V_t = self.V_t0 * (273 + self.t) / (273 + t0)
+        self.α = (self.U_c * self.r_tw) / (self.t - self.tw)  # 传热系数
+        self.V_t0 = C_0 * A_0 * np.sqrt(2 * self.ΔP / ρ_空气)  # 初始体积流量 (m^3/s)
+        self.V_t = self.V_t0 * (273 + self.t) / (273 + t0)  # 体积流量 (m^3/s)
 
         self.results.update({
             'α': self.α.tolist(),
@@ -159,7 +162,7 @@ class DryingDataProcessor:
             img = mpimg.imread(f'./拟合图结果/{i}.png')
             images.append(img)
 
-        fig, axes = plt.subplots(2, 1, figsize=(16, 9), dpi=125)
+        fig, axes = plt.subplots(2, 1, figsize=(12, 12), dpi=125)
         for ax, img in zip(axes.flatten(), images):
             ax.imshow(img)
             ax.axis('off')
