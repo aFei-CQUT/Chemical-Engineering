@@ -104,7 +104,7 @@ plt.rcParams['font.family'] = 'simhei'
 plt.rcParams['axes.unicode_minus'] = False
 
 # 绘制第一幅图：干填料数据和拟合曲线
-plt.figure(figsize=(10, 8))
+plt.figure(figsize=(8, 6))
 plt.scatter(ans1['u'], ans1['delta_p_over_z'], color='red', label='干填料')
 plt.plot(np.linspace(np.min(ans1['u']), np.max(ans1['u']), 1000),
          linear_fit(np.linspace(np.min(ans1['u']), np.max(ans1['u']), 1000), *ans1['popt']), 'k-', label=ans1['fit_label'])
@@ -124,7 +124,7 @@ plt.savefig(r'./拟合图结果/u - Δp_over_Z (干填料).png', dpi=300)
 plt.show()
 
 # 绘制第二幅图：湿填料数据和拟合曲线
-plt.figure(figsize=(10, 8))
+plt.figure(figsize=(8, 6))
 plt.scatter(ans2['u'], ans2['delta_p_over_z'], color='blue', label='湿填料')
 plt.plot(np.linspace(np.min(ans2['u']), np.max(ans2['u']), 1000),
          taylor_fit(np.linspace(np.min(ans2['u']), np.max(ans2['u']), 1000), *ans2['popt']), 'k-', label=ans2['fit_label'])
@@ -144,7 +144,7 @@ plt.savefig(r'./拟合图结果/u - Δp_over_Z (湿填料).png', dpi=300)
 plt.show()
 
 # 绘制整体图形
-plt.figure(figsize=(10, 8))
+plt.figure(figsize=(8, 6))
 
 # 干填料的数据和拟合曲线
 plt.scatter(ans1['u'], ans1['delta_p_over_z'], color='red', label='干填料')
