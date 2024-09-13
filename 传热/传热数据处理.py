@@ -6,12 +6,27 @@ import zipfile
 import os
 
 class HeatTransferAnalysis:
+    """
+    传热分析类，用于加载数据、处理数据、生成拟合图和压缩结果。
+    """
     def __init__(self, excel_file):
+        """
+        初始化函数，加载Excel文件并读取数据集。
+        
+        参数:
+        excel_file (str): Excel文件路径
+        """
         self.excel_file = excel_file
         self.datasets = self.load_data()
         self.results = []
 
     def load_data(self):
+        """
+        加载Excel文件中的数据，并将其转换为numpy数组。
+        
+        返回:
+        datasets (list): 包含每个工作表数据的列表
+        """
         excel_file = pd.ExcelFile(self.excel_file)
         sheet_names = excel_file.sheet_names
         datasets = []
@@ -26,6 +41,19 @@ class HeatTransferAnalysis:
         return datasets
 
     def heat_transfer_data_preprocess(self, Δp_kb, t_in, t_out):
+        """
+        传热数据预处理，计算相关参数并生成原始数据和计算结果表格。
+        
+        参数:
+        Δp_kb (numpy.ndarray): 孔板压差数据
+        t_in (numpy.ndarray): 入口温度数据
+        t_out (numpy.ndarray): 出口温度数据
+        
+        返回:
+        ans_original_data (pd.DataFrame): 原始数据表格
+        ans_calculated_data (pd.DataFrame): 计算结果表格
+        data_for_fit (numpy.ndarray): 用于拟合的数据
+        """
         # 计算过程（与原代码相同）
         t_w = 98.4
         d_o = 0.022
@@ -100,9 +128,23 @@ class HeatTransferAnalysis:
 
     @staticmethod
     def fit_func(x, a, b):
+        """
+        拟合函数，用于曲线拟合。
+        
+        参数:
+        x (numpy.ndarray): 自变量
+        a (float): 拟合参数
+        b (float): 拟合参数
+        
+        返回:
+        numpy.ndarray: 拟合结果
+        """
         return a + b * x
 
     def process_data(self):
+        """
+        处理数据集，进行数据预处理和曲线拟合。
+        """
         for idx, dataset in enumerate(self.datasets):
             Δp_kb = dataset['Δp_kb']
             t_in = dataset['t_in']
@@ -128,6 +170,14 @@ class HeatTransferAnalysis:
             })
 
     def plot_fit(self, data_for_fit, filename, title):
+        """
+        绘制拟合图并保存为文件。
+        
+        参数:
+        data_for_fit (numpy.ndarray): 用于拟合的数据
+        filename (str): 保存文件名
+        title (str): 图表标题
+        """
         if len(data_for_fit) == 0:
             print(f"警告：没有有效数据用于绘制 {filename}")
             return
@@ -159,6 +209,9 @@ class HeatTransferAnalysis:
         plt.close()
 
     def generate_plots(self):
+        """
+        生成拟合图并保存为文件。
+        """
         plt.rcParams['font.family'] = 'simhei'
         plt.rcParams['axes.unicode_minus'] = False
     
@@ -210,6 +263,9 @@ class HeatTransferAnalysis:
 
     @staticmethod
     def compress_results():
+        """
+        压缩结果文件夹并保存为zip文件。
+        """
         dir_to_zip = r'./拟合图结果'
         dir_to_save = r'./拟合图结果.zip'
 
@@ -223,6 +279,9 @@ class HeatTransferAnalysis:
         print(f'压缩完成，文件保存为: {dir_to_save}')
 
 def main():
+    """
+    主函数，执行传热分析的各个步骤。
+    """
     analysis = HeatTransferAnalysis('传热原始数据记录表(非).xlsx')
     analysis.process_data()
     analysis.generate_plots()
