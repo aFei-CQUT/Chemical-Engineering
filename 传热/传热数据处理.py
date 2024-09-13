@@ -5,7 +5,7 @@ from scipy.optimize import curve_fit
 import zipfile
 import os
 
-class HeatTransferAnalysis:
+class HeatTransferDataProcesser:
     """
     传热分析类，用于加载数据、处理数据、生成拟合图和压缩结果。
     """
@@ -40,7 +40,7 @@ class HeatTransferAnalysis:
             })
         return datasets
 
-    def heat_transfer_data_preprocess(self, Δp_kb, t_in, t_out):
+    def heat_transfer_data_processer_data_preprocess(self, Δp_kb, t_in, t_out):
         """
         传热数据预处理，计算相关参数并生成原始数据和计算结果表格。
         
@@ -150,7 +150,7 @@ class HeatTransferAnalysis:
             t_in = dataset['t_in']
             t_out = dataset['t_out']
     
-            ans_original_data, ans_calculated_data, data_for_fit = self.heat_transfer_data_preprocess(Δp_kb, t_in, t_out)
+            ans_original_data, ans_calculated_data, data_for_fit = self.heat_transfer_data_processer_data_preprocess(Δp_kb, t_in, t_out)
             
             # 检查并过滤掉非正值
             valid_indices = (data_for_fit[:, 0] > 0) & (data_for_fit[:, 1] > 0)
@@ -284,22 +284,24 @@ class HeatTransferAnalysis:
         with zipfile.ZipFile(dir_to_save, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for root, dirs, files in os.walk(dir_to_zip):
                 for file in files:
-                    file_dir = os.path.join(root, file)
-                    arc_name = os.path.relpath(file_dir, dir_to_zip)
-                    zipf.write(file_dir, arc_name)
+                    file_path = os.path.join(root, file)
+                    arc_name = os.path.relpath(file_path, dir_to_zip)
+                    zipf.write(file_path, arc_name)
 
         print(f'压缩完成，文件保存为: {dir_to_save}')
 
 # 使用示例
 if __name__ == "__main__":
+    file_path = '传热原始数据记录表(非).xlsx'
     # 实例化要分析的数据对象
-    heat_transfer_analysis = HeatTransferAnalysis('传热原始数据记录表(非).xlsx')
+    heat_transfer_data_processer = HeatTransferDataProcesser(file_path)
     # 处理数据
-    heat_transfer_analysis.process_data()
-    # 打印结果
-    # 结果可在heat_transfer_analysis对象里面的results查看，里面的calculated_data即为计算后结果
-    # heat_transfer_analysis.print_results()
+    heat_transfer_data_processer.process_data()
+    # 结果可在heat_transfer_data_processer的results属性查看
+    # results属性内calculated_data即为计算后结果
+    # 打印结果，但太长了打印需要换行
+    # heat_transfer_data_processer.print_results()
     # 结果绘图
-    heat_transfer_analysis.generate_plots()
+    heat_transfer_data_processer.generate_plots()
     # 压缩结果便于分享
-    heat_transfer_analysis.compress_results()
+    heat_transfer_data_processer.compress_results()
