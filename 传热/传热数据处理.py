@@ -28,7 +28,7 @@ class HeatTransferAnalysis:
         datasets (list): 包含每个工作表数据的列表
         """
         excel_file = pd.ExcelFile(self.excel_file)
-        sheet_names = excel_file.sheet_names
+        sheet_names = excel_file.sheet_names[:2]
         datasets = []
         for sheet_name in sheet_names:
             sheet = pd.read_excel(self.excel_file, sheet_name=sheet_name, header=None)
@@ -168,6 +168,18 @@ class HeatTransferAnalysis:
                 'data_for_fit': valid_data,
                 'params': ans_params
             })
+            
+    def print_results(self):
+        """
+        打印输出results字典的calculated_data键值。
+        """
+        # 设置显示选项
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.max_rows', None)
+        
+        for idx, result in enumerate(self.results):
+            print(f"数据集 {idx+1} 的计算结果:")
+            print(result['calculated_data'])    
 
     def plot_fit(self, data_for_fit, filename, title):
         """
@@ -207,7 +219,7 @@ class HeatTransferAnalysis:
         plt.show()
         
         plt.close()
-
+        
     def generate_plots(self):
         """
         生成拟合图并保存为文件。
@@ -260,7 +272,7 @@ class HeatTransferAnalysis:
             
             plt.show()
         plt.close('all')
-
+        
     @staticmethod
     def compress_results():
         """
@@ -278,14 +290,16 @@ class HeatTransferAnalysis:
 
         print(f'压缩完成，文件保存为: {dir_to_save}')
 
-def main():
-    """
-    主函数，执行传热分析的各个步骤。
-    """
-    analysis = HeatTransferAnalysis('传热原始数据记录表(非).xlsx')
-    analysis.process_data()
-    analysis.generate_plots()
-    analysis.compress_results()
-
+# 使用示例
 if __name__ == "__main__":
-    main()
+    # 实例化要分析的数据对象
+    heat_transfer_analysis = HeatTransferAnalysis('传热原始数据记录表(非).xlsx')
+    # 处理数据
+    heat_transfer_analysis.process_data()
+    # 打印结果
+    # 结果可在heat_transfer_analysis对象里面的results查看，里面的calculated_data即为计算后结果
+    # heat_transfer_analysis.print_results()
+    # 结果绘图
+    heat_transfer_analysis.generate_plots()
+    # 压缩结果便于分享
+    heat_transfer_analysis.compress_results()
