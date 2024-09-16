@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import zipfile
 import os
 
-class DistillationDatadistillation_data_processor:
+class DistillationDataProcessor:
     """
     精馏数据处理器类
 
@@ -22,7 +22,7 @@ class DistillationDatadistillation_data_processor:
 
     def __init__(self, file_path, R, αm, F, tS, tF):
         """
-        初始化DistillationDatadistillation_data_processor对象
+        初始化DistillationDataProcessor对象
 
         参数:
             file_path (str): Excel文件路径
@@ -260,7 +260,7 @@ class DistillationDatadistillation_data_processor:
             f.write('\n'.join(results))
 
 def process_and_save(file_path, R, αm, F, tS, tF, filename):
-    distillation_data_processor = DistillationDatadistillation_data_processor(file_path, R, αm, F, tS, tF)
+    distillation_data_processor = DistillationDataProcessor(file_path, R, αm, F, tS, tF)
     distillation_data_processor.plot_results(filename)
     distillation_data_processor.save_results(filename)
 
