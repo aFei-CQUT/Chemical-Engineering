@@ -9,7 +9,7 @@ import os
 
 warnings.filterwarnings("ignore")
 
-class PackedTowerAnalyzer:
+class PackedTowerDataProcessor:
     def __init__(self, file_dir):
         self.file_dir = file_dir  # 文件路径
         self.sheet_names = pd.ExcelFile(file_dir).sheet_names  # Excel文件中的工作表名称
@@ -152,7 +152,7 @@ class PackedTowerAnalyzer:
         for spine in ax.spines.values():
             spine.set_linewidth(2)
 
-class OxygenDesorptionAnalyzer:
+class OxygenDesorptionDataProcessor:
     def __init__(self, file_dir):
         self.file_dir = file_dir  # 文件路径
         self.sheet_names = pd.ExcelFile(file_dir).sheet_names  # Excel文件中的工作表名称
@@ -275,13 +275,13 @@ class ResultCompressor:
 if __name__ == '__main__':
     file_dir = r'./解吸原始记录表(非).xlsx'
     
-    # 实例化并调用 PackedTowerAnalyzer
-    tower_analyzer = PackedTowerAnalyzer(file_dir)
-    tower_analyzer.plot_fluid_dynamics()
+    # 实例化并调用 PackedTowerDataProcessor
+    tower_processor = PackedTowerDataProcessor(file_dir)
+    tower_processor.plot_fluid_dynamics()
 
-    # 实例化并调用 OxygenDesorptionAnalyzer
-    oxygen_analyzer = OxygenDesorptionAnalyzer(file_dir)
-    oxygen_analyzer.analyze_all_sheets()
+    # 实例化并调用 OxygenDesorptionDataProcessor
+    oxygen_processor = OxygenDesorptionDataProcessor(file_dir)
+    oxygen_processor.analyze_all_sheets()
 
     # 压缩结果
     image_result_dir = './拟合图结果'

@@ -201,8 +201,8 @@ class HeatTransferDataProcesser:
         plt.plot(data_for_fit[:, 0], 10 ** self.fit_func(np.log10(data_for_fit[:, 0]), *ans_params), color='k', label=r'$\mathrm{Fit}')
         plt.xscale('log')
         plt.yscale('log')
-        plt.xlabel(r'$\mathrm{Re}, fontsize=14, fontweight='bold')
-        plt.ylabel(r'$\mathrm{Nu/Pr^{0.4}}, fontsize=14, fontweight='bold')
+        plt.xlabel(r'$\mathrm{Re}$', fontsize=14, fontweight='bold')
+        plt.ylabel(r'$\mathrm{Nu/Pr^{0.4}}$', fontsize=14, fontweight='bold')
         plt.title(title, fontsize=10, fontweight='bold')
         plt.legend()
 
@@ -255,8 +255,8 @@ class HeatTransferDataProcesser:
         else:
             plt.xscale('log')
             plt.yscale('log')
-            plt.xlabel(r'$\mathrm{Re}, fontsize=14, fontweight='bold')
-            plt.ylabel(r'$\mathrm{Nu/Pr^{0.4}}, fontsize=14, fontweight='bold')
+            plt.xlabel(r'$\mathrm{Re}$', fontsize=14, fontweight='bold')
+            plt.ylabel(r'$\mathrm{Nu/Pr^{0.4}}$', fontsize=14, fontweight='bold')
             plt.title('无强化套管 vs.有强化套管', fontsize=10, fontweight='bold')
             plt.legend()
     
